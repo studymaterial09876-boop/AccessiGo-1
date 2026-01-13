@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FFD700">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="AccessiGo - Bengaluru Namma Metro Accessibility Companion">
+    
+    <title>AccessiGo - Namma Metro Accessibility</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;AccessiGo&quot;,&quot;short_name&quot;:&quot;AccessiGo&quot;,&quot;theme_color&quot;:&quot;%23FFD700&quot;,&quot;background_color&quot;:&quot;%23000000&quot;,&quot;display&quot;:&quot;standalone&quot;}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <style>
+        :root {
+            --gold-50: #FFFEF0;
+            --gold-100: #FFF9D6;
+            --gold-200: #FFF3AD;
+            --gold-300: #FFEC85;
+            --gold-400: #FFE55C;
+            --gold-500: #FFD700;
+            --gold-600: #E6C200;
+            --gold-700: #B39600;
+            --gold-800: #806B00;
+            --gold-900: #4D4000;
+            --purple-line: #7B2D8E;
+            --green-line: #00A650;
+        }
+        
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+        
+        /* Skip Link */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gold-500);
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 0 0 12px 12px;
+            font-weight: 600;
+            z-index: 10000;
+            transition: top 0.2s;
+        }
+        .skip-link:focus {
+            top: 0;
+            outline: 3px solid #000;
+            outline-offset: 2px;
+        }
+        
+        /* Focus Styles */
+        *:focus-visible {
+            outline: 3px solid var(--gold-500);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+        
+        /* Glassmorphism Base */
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        
+        .glass-light {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .glass-gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes trainMove {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-slide-down { animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-pulse { animation: pulse 2s ease-in-out infinite; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        /* Stagger delays */
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+        .stagger-5 { animation-delay: 0.5s; }
+        
+        /* Button Press Effect */
+        .btn-press {
+            transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+        }
+        .btn-press:active {
+            transform: scale(0.96);
+        }
+        
+        /* Crowd Level Pills */
+        .crowd-low { background: linear-gradient(135deg, #10B981, #059669); }
+        .crowd-medium { background: linear-gradient(135deg, #F59E0B, #D97706); }
+        .crowd-high { background: linear-gradient(135deg, #EF4444, #DC2626); }
+        
+        /* Metro Lines */
+        .line-purple { background: var(--purple-line); }
+        .line-green { background: var(--green-line); }
+        
+        /* Bottom Sheet */
+        .bottom-sheet {
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bottom-sheet.open {
+            transform: translateY(0);
+        }
+        
+        /* Page Transitions */
+        .page {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .page.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Dynamic Island */
+        .dynamic-island {
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .dynamic-island.expanded {
+            width: 90%;
+            max-width: 360px;
+            padding: 16px;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 215, 0, 0.5);
+        }
+        
+        /* Toast Notification */
+        .toast {
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .toast.hiding {
+            animation: slideUp 0.3s ease-in forwards reverse;
+        }
+        
+        /* Route Animation */
+        .route-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s ease-out forwards;
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Train Animation */
+        .train-icon {
+            animation: trainMove 3s linear infinite;
+        }
+        
+        /* Gradient backgrounds */
+        .bg-gradient-gold {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+        
+        .bg-gradient-dark {
+            background: linear-gradient(180deg, #0A0A0A 0%, #1A1A1A 100%);
+        }
+        
+        /* Text gradient */
+        .text-gradient-gold {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gradient-dark min-h-screen text-white overflow-x-hidden">
+    <!-- Skip Link for Accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <!-- Dynamic Island Status Bar -->
+    <div id="dynamic-island" class="dynamic-island fixed top-4 left-1/2 -translate-x-1/2 z-50 glass rounded-full px-4 py-2 hidden items-center gap-3 cursor-pointer" role="status" aria-live="polite">
+        <div class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></div>
+        <span id="island-text" class="text-sm font-medium">Assistance Request Active</span>
+        <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-40 flex flex-col gap-2" aria-live="polite"></div>
+    
+    <!-- Main App Container -->
+    <div id="app" class="min-h-screen">
+        
+        <!-- Landing Page -->
+        <div id="page-landing" class="page active min-h-screen flex flex-col">
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <!-- Logo -->
+                <div class="mb-8 animate-float">
+                    <div class="w-24 h-24 rounded-3xl bg-gradient-gold flex items-center justify-center shadow-2xl shadow-yellow-500/30">
+                        <svg class="w-14 h-14 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 animate-slide-up">
+                    <span class="text-gradient-gold">AccessiGo</span>
+                </h1>
+                
+                <p class="text-lg text-gray-400 mb-2 animate-slide-up stagger-1" style="opacity:0">
+                    Bengaluru Namma Metro
+                </p>
+                <p class="text-xl text-white font-medium mb-8 animate-slide-up stagger-2" style="opacity:0">
+                    Your Accessibility Companion
+                </p>
+                
+                <!-- Language Selector -->
+                <div class="mb-8 animate-slide-up stagger-3" style="opacity:0">
+                    <label for="language-select" class="sr-only">Select Language</label>
+                    <select id="language-select" class="glass rounded-2xl px-6 py-3 text-white font-medium cursor-pointer hover:bg-white/10 transition-colors" aria-label="Select your preferred language">
+                        <option value="en" class="bg-gray-900">🇬🇧 English</option>
+                        <option value="hi" class="bg-gray-900">🇮🇳 हिंदी</option>
+                        <option value="kn" class="bg-gray-900">🇮🇳 ಕನ್ನಡ</option>
+                        <option value="ta" class="bg-gray-900">🇮🇳 தமிழ்</option>
+                        <option value="te" class="bg-gray-900">🇮🇳 తెలుగు</option>
+                        <option value="ml" class="bg-gray-900">🇮🇳 മലയാളം</option>
+                    </select>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 w-full max-w-sm animate-slide-up stagger-4" style="opacity:0">
+                    <button onclick="showPage('page-commuter')" class="btn-press flex-1 bg-gradient-gold text-black font-bold py-4 px-8 rounded-2xl shadow-lg shadow-yellow-500/30 hover:shadow-yellow-500/50 transition-shadow">
+                        <span data-i18n="commuter_login">Commuter Login</span>
+                    </button>
+                    <button onclick="showPage('page-staff-login')" class="btn-press flex-1 glass hover:bg-white/10 font-bold py-4 px-8 rounded-2xl transition-colors">
+                        <span data-i18n="staff_portal">Staff Portal</span>
+                    </button>
+                </div>
+                
+                <!-- Accessibility Features Preview -->
+                <div class="mt-12 grid grid-cols-3 gap-4 max-w-md animate-slide-up stagger-5" style="opacity:0">
+                    <div class="glass-gold rounded-2xl p-4 text-center">
+                        <div class="text-2xl mb-2">🎧</div>
+                        <p class="text-xs text-gray-300" data-i18n="feature_voice">Voice Guidance</p>
+                    </div>
+                    <div class="glass-gold rounded-2xl p-4 text-center">
+                        <div class="text-2xl mb-2">♿</div>
+                        <p class="text-xs text-gray-300" data-i18n="feature_assist">Assistance</p>
+                    </div>
+                    <div class="glass-gold rounded-2xl p-4 text-center">
+                        <div class="text-2xl mb-2">🗺️</div>
+                        <p class="text-xs text-gray-300" data-i18n="feature_routes">Routes</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Bar -->
+            <div class="p-4 flex justify-center gap-4">
+                <button onclick="toggleLargeText()" class="glass rounded-full px-4 py-2 text-sm flex items-center gap-2 hover:bg-white/10 transition-colors" aria-label="Toggle large text">
+                    <span class="text-lg">Aa</span>
+                    <span data-i18n="large_text">Large Text</span>
+                </button>
+                <button onclick="toggleReduceMotion()" class="glass rounded-full px-4 py-2 text-sm flex items-center gap-2 hover:bg-white/10 transition-colors" aria-label="Toggle reduced motion">
+                    <span class="text-lg">⚡</span>
+                    <span data-i18n="reduce_motion">Reduce Motion</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Commuter Dashboard -->
+        <div id="page-commuter" class="page hidden min-h-screen pb-24">
+            <main id="main-content" tabindex="-1">
+                <!-- Header -->
+                <header class="glass sticky top-0 z-30 px-4 py-4">
+                    <div class="flex items-center justify-between max-w-4xl mx-auto">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-gold flex items-center justify-center">
+                                <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="font-bold text-lg">AccessiGo</h1>
+                                <p class="text-xs text-gray-400" data-i18n="welcome_back">Welcome back!</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="showNotificationHistory()" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="View notification history">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                            </button>
+                            <button onclick="showPage('page-landing')" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Back to home">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="px-4 py-6 max-w-4xl mx-auto space-y-6">
+                    <!-- Quick Actions Grid -->
+                    <section aria-labelledby="quick-actions-title">
+                        <h2 id="quick-actions-title" class="sr-only">Quick Actions</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="showPage('page-trip-planner')" class="btn-press glass-gold rounded-3xl p-6 text-left hover:scale-[1.02] transition-transform">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-gold flex items-center justify-center mb-4">
+                                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-bold text-lg mb-1" data-i18n="plan_trip">Plan Trip</h3>
+                                <p class="text-sm text-gray-400" data-i18n="plan_trip_desc">Find your route</p>
+                            </button>
+                            
+                            <button onclick="showPage('page-stations')" class="btn-press glass rounded-3xl p-6 text-left hover:scale-[1.02] transition-transform">
+                                <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-bold text-lg mb-1" data-i18n="stations">Stations</h3>
+                                <p class="text-sm text-gray-400" data-i18n="stations_desc">Browse all stops</p>
+                            </button>
+                            
+                            <button onclick="showAssistanceSheet()" class="btn-press glass rounded-3xl p-6 text-left hover:scale-[1.02] transition-transform">
+                                <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-bold text-lg mb-1" data-i18n="request_help">Request Help</h3>
+                                <p class="text-sm text-gray-400" data-i18n="request_help_desc">Staff assistance</p>
+                            </button>
+                            
+                            <button onclick="startVoiceGuidance()" class="btn-press glass rounded-3xl p-6 text-left hover:scale-[1.02] transition-transform">
+                                <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-4">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="font-bold text-lg mb-1" data-i18n="voice_guide">Voice Guide</h3>
+                                <p class="text-sm text-gray-400" data-i18n="voice_guide_desc">Audio navigation</p>
+                            </button>
+                        </div>
+                    </section>
+                    
+                    <!-- Live Crowd Status -->
+                    <section aria-labelledby="crowd-title">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 id="crowd-title" class="font-bold text-xl" data-i18n="live_crowd">Live Crowd Status</h2>
+                            <span class="text-xs text-gray-400 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <span data-i18n="live">Live</span>
+                            </span>
+                        </div>
+                        <div class="glass rounded-3xl p-4 space-y-3" id="crowd-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+                    
+                    <!-- Metro Lines Overview -->
+                    <section aria-labelledby="lines-title">
+                        <h2 id="lines-title" class="font-bold text-xl mb-4" data-i18n="metro_lines">Metro Lines</h2>
+                        <div class="space-y-3">
+                            <button onclick="filterStations('purple')" class="w-full btn-press glass rounded-2xl p-4 flex items-center gap-4 hover:bg-white/5 transition-colors text-left">
+                                <div class="w-4 h-12 rounded-full line-purple"></div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold" data-i18n="purple_line">Purple Line</h3>
+                                    <p class="text-sm text-gray-400">Baiyappanahalli ↔ Vijayanagar</p>
+                                </div>
+                                <span class="text-sm text-gray-400">7 <span data-i18n="stations_count">stations</span></span>
+                            </button>
+                            
+                            <button onclick="filterStations('green')" class="w-full btn-press glass rounded-2xl p-4 flex items-center gap-4 hover:bg-white/5 transition-colors text-left">
+                                <div class="w-4 h-12 rounded-full line-green"></div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold" data-i18n="green_line">Green Line</h3>
+                                    <p class="text-sm text-gray-400">Nagasandra ↔ Silk Institute</p>
+                                </div>
+                                <span class="text-sm text-gray-400">7 <span data-i18n="stations_count">stations</span></span>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            </main>
+            
+            <!-- Bottom Navigation -->
+            <nav class="fixed bottom-0 left-0 right-0 glass border-t border-white/10 px-4 py-3 z-30" aria-label="Main navigation">
+                <div class="flex justify-around max-w-md mx-auto">
+                    <button onclick="showPage('page-commuter')" class="flex flex-col items-center gap-1 text-yellow-400" aria-current="page">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        <span class="text-xs" data-i18n="nav_home">Home</span>
+                    </button>
+                    <button onclick="showPage('page-trip-planner')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                        </svg>
+                        <span class="text-xs" data-i18n="nav_trip">Trip</span>
+                    </button>
+                    <button onclick="showPage('page-stations')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        </svg>
+                        <span class="text-xs" data-i18n="nav_stations">Stations</span>
+                    </button>
+                    <button onclick="showPage('page-settings')" class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="text-xs" data-i18n="nav_settings">Settings</span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Stations List Page -->
+        <div id="page-stations" class="page hidden min-h-screen pb-24">
+            <header class="glass sticky top-0 z-30 px-4 py-4">
+                <div class="flex items-center gap-4 max-w-4xl mx-auto">
+                    <button onclick="showPage('page-commuter')" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Go back">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="flex-1">
+                        <h1 class="font-bold text-xl" data-i18n="all_stations">All Stations</h1>
+                        <p class="text-sm text-gray-400" id="station-filter-label">All Lines</p>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="px-4 py-6 max-w-4xl mx-auto">
+                <!-- Search -->
+                <div class="mb-6">
+                    <label for="station-search" class="sr-only">Search stations</label>
+                    <div class="relative">
+                        <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="search" id="station-search" placeholder="Search stations..." class="w-full glass rounded-2xl pl-12 pr-4 py-3 bg-transparent placeholder-gray-400 focus:outline-none" oninput="filterStationsBySearch(this.value)">
+                    </div>
+                </div>
+                
+                <!-- Line Filter Tabs -->
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    <button onclick="filterStations('all')" class="filter-tab active whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium glass" data-filter="all" data-i18n="all_lines">All Lines</button>
+                    <button onclick="filterStations('purple')" class="filter-tab whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium glass" data-filter="purple" data-i18n="purple_line">Purple Line</button>
+                    <button onclick="filterStations('green')" class="filter-tab whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium glass" data-filter="green" data-i18n="green_line">Green Line</button>
+                </div>
+                
+                <!-- Station List -->
+                <div id="stations-list" class="space-y-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Station Detail Page -->
+        <div id="page-station-detail" class="page hidden min-h-screen pb-24">
+            <header class="glass sticky top-0 z-30 px-4 py-4">
+                <div class="flex items-center gap-4 max-w-4xl mx-auto">
+                    <button onclick="showPage('page-stations')" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Go back">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="flex-1">
+                        <h1 id="station-detail-name" class="font-bold text-xl">Station Name</h1>
+                        <p id="station-detail-line" class="text-sm text-gray-400">Line</p>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="px-4 py-6 max-w-4xl mx-auto space-y-6">
+                <!-- Station Hero Card -->
+                <div id="station-hero" class="glass-gold rounded-3xl p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 id="station-hero-name" class="text-2xl font-bold">Station</h2>
+                            <p id="station-hero-alias" class="text-sm text-yellow-300"></p>
+                        </div>
+                        <div id="station-crowd-badge" class="crowd-low px-3 py-1 rounded-full text-xs font-bold text-white">
+                            LOW
+                        </div>
+                    </div>
+                    <div id="station-line-badge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium line-purple text-white">
+                        <span class="w-2 h-2 rounded-full bg-white"></span>
+                        <span>Purple Line</span>
+                    </div>
+                </div>
+                
+                <!-- Facilities -->
+                <section aria-labelledby="facilities-title">
+                    <h2 id="facilities-title" class="font-bold text-lg mb-3" data-i18n="facilities">Facilities</h2>
+                    <div id="facilities-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+                
+                <!-- Interactive Map Placeholder -->
+                <section aria-labelledby="map-title">
+                    <h2 id="map-title" class="font-bold text-lg mb-3" data-i18n="station_map">Station Map</h2>
+                    <div id="station-map" class="glass rounded-3xl h-64 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-green-900/20"></div>
+                        <div class="relative text-center p-6">
+                            <div class="w-16 h-16 rounded-full bg-yellow-400 mx-auto mb-4 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                            </div>
+                            <p id="map-station-name" class="font-bold text-lg mb-2">Station Name</p>
+                            <p class="text-sm text-gray-400" data-i18n="tap_directions">Tap for directions</p>
+                        </div>
+                        <!-- Mock Bus Stops -->
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="glass rounded-xl p-3">
+                                <p class="text-xs text-gray-400 mb-2" data-i18n="nearby_bus_stops">Nearby Bus Stops</p>
+                                <div id="bus-stops-list" class="space-y-1 text-sm">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Accessibility Notes -->
+                <section aria-labelledby="access-notes-title">
+                    <h2 id="access-notes-title" class="font-bold text-lg mb-3" data-i18n="accessibility_info">Accessibility Info</h2>
+                    <div id="accessibility-notes" class="glass rounded-2xl p-4 space-y-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+                
+                <!-- Actions -->
+                <div class="flex gap-3">
+                    <button onclick="planTripFromStation()" class="btn-press flex-1 bg-gradient-gold text-black font-bold py-4 rounded-2xl">
+                        <span data-i18n="start_from_here">Start Trip From Here</span>
+                    </button>
+                    <button onclick="requestHelpAtStation()" class="btn-press glass px-6 py-4 rounded-2xl hover:bg-white/10 transition-colors" aria-label="Request assistance">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trip Planner Page -->
+        <div id="page-trip-planner" class="page hidden min-h-screen pb-24">
+            <header class="glass sticky top-0 z-30 px-4 py-4">
+                <div class="flex items-center gap-4 max-w-4xl mx-auto">
+                    <button onclick="showPage('page-commuter')" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Go back">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="font-bold text-xl" data-i18n="trip_planner">Trip Planner</h1>
+                </div>
+            </header>
+            
+            <div class="px-4 py-6 max-w-4xl mx-auto space-y-6">
+                <!-- From/To Selection -->
+                <div class="glass-gold rounded-3xl p-6 space-y-4">
+                    <div class="relative">
+                        <label for="trip-from" class="block text-sm font-medium text-yellow-300 mb-2" data-i18n="from_station">From Station</label>
+                        <select id="trip-from" class="w-full glass rounded-xl px-4 py-3 bg-transparent font-medium cursor-pointer">
+                            <option value="" class="bg-gray-900" data-i18n="select_station">Select station...</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="swapStations()" class="mx-auto w-10 h-10 rounded-full bg-yellow-400/20 flex items-center justify-center hover:bg-yellow-400/30 transition-colors" aria-label="Swap stations">
+                        <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                        </svg>
+                    </button>
+                    
+                    <div class="relative">
+                        <label for="trip-to" class="block text-sm font-medium text-yellow-300 mb-2" data-i18n="to_station">To Station</label>
+                        <select id="trip-to" class="w-full glass rounded-xl px-4 py-3 bg-transparent font-medium cursor-pointer">
+                            <option value="" class="bg-gray-900" data-i18n="select_station">Select station...</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="planTrip()" class="btn-press w-full bg-gradient-gold text-black font-bold py-4 rounded-2xl shadow-lg shadow-yellow-500/30">
+                        <span data-i18n="find_route">Find Route</span>
+                    </button>
+                </div>
+                
+                <!-- Route Display -->
+                <div id="route-display" class="hidden">
+                    <h2 class="font-bold text-lg mb-4" data-i18n="your_route">Your Route</h2>
+                    
+                    <!-- Route Summary -->
+                    <div class="glass rounded-2xl p-4 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400" data-i18n="total_stations">Total Stations</p>
+                                <p id="route-station-count" class="text-2xl font-bold">0</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400" data-i18n="est_time">Est. Time</p>
+                                <p id="route-time" class="text-2xl font-bold">0 min</p>
+                            </div>
+                            <div id="route-interchange" class="hidden">
+                                <p class="text-sm text-gray-400" data-i18n="interchange">Interchange</p>
+                                <p class="text-lg font-bold text-yellow-400">Majestic</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Visual Route -->
+                    <div id="route-visual" class="glass rounded-3xl p-6 relative overflow-hidden">
+                        <!-- Route stops rendered here -->
+                    </div>
+                    
+                    <!-- Voice Guide Button -->
+                    <button onclick="readRouteAloud()" class="btn-press w-full mt-4 glass-gold rounded-2xl py-4 font-bold flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                        </svg>
+                        <span data-i18n="read_steps">Read Steps Aloud</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Staff Login Page -->
+        <div id="page-staff-login" class="page hidden min-h-screen flex flex-col">
+            <header class="glass px-4 py-4">
+                <div class="flex items-center gap-4 max-w-4xl mx-auto">
+                    <button onclick="showPage('page-landing')" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Go back">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="font-bold text-xl" data-i18n="staff_login">Staff Login</h1>
+                </div>
+            </header>
+            
+            <div class="flex-1 flex items-center justify-center p-6">
+                <div class="w-full max-w-sm space-y-6">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 rounded-2xl bg-gradient-gold mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-10 h-10 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold" data-i18n="staff_portal">Staff Portal</h2>
+                        <p class="text-gray-400 mt-2" data-i18n="staff_login_desc">Enter your staff credentials</p>
+                    </div>
+                    
+                    <form onsubmit="staffLogin(event)" class="space-y-4">
+                        <div>
+                            <label for="staff-email" class="block text-sm font-medium mb-2">Email</label>
+                            <input type="email" id="staff-email" required class="w-full glass rounded-xl px-4 py-3 bg-transparent focus:outline-none" placeholder="staff@nammametro.gov.in">
+                        </div>
+                        <div>
+                            <label for="staff-password" class="block text-sm font-medium mb-2">Password</label>
+                            <input type="password" id="staff-password" required class="w-full glass rounded-xl px-4 py-3 bg-transparent focus:outline-none" placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn-press w-full bg-gradient-gold text-black font-bold py-4 rounded-2xl shadow-lg shadow-yellow-500/30">
+                            <span data-i18n="login">Login</span>
+                        </button>
+                    </form>
+                    
+                    <p class="text-center text-sm text-gray-400">
+                        Demo: Use any email with password "staff123"
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Staff Dashboard -->
+        <div id="page-staff-dashboard" class="page hidden min-h-screen bg-gray-950">
+            <header class="bg-gray-900/90 backdrop-blur-xl border-b border-gray-800 px-4 py-4 sticky top-0 z-30">
+                <div class="flex items-center justify-between max-w-6xl mx-auto">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-gold flex items-center justify-center">
+                            <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="font-bold">Staff Command Center</h1>
+                            <p class="text-xs text-gray-400">Namma Metro Operations</p>
+                        </div>
+                    </div>
+                    <button onclick="staffLogout()" class="px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium">
+                        Logout
+                    </button>
+                </div>
+            </header>
+            
+            <div class="px-4 py-6 max-w-6xl mx-auto">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+                        <p class="text-sm text-gray-400">Active Requests</p>
+                        <p id="stat-active-requests" class="text-3xl font-bold text-yellow-400">3</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+                        <p class="text-sm text-gray-400">Completed Today</p>
+                        <p id="stat-completed" class="text-3xl font-bold text-green-400">12</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+                        <p class="text-sm text-gray-400">Avg Response</p>
+                        <p class="text-3xl font-bold text-blue-400">2.4m</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+                        <p class="text-sm text-gray-400">Staff Online</p>
+                        <p class="text-3xl font-bold text-purple-400">8</p>
+                    </div>
+                </div>
+                
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Assistance Requests -->
+                    <section>
+                        <h2 class="font-bold text-lg mb-4 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                            Active Assistance Requests
+                        </h2>
+                        <div id="staff-requests-list" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+                    
+                    <!-- Crowd Control -->
+                    <section>
+                        <h2 class="font-bold text-lg mb-4">Crowd Level Control</h2>
+                        <div id="crowd-control-list" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Page -->
+        <div id="page-settings" class="page hidden min-h-screen pb-24">
+            <header class="glass sticky top-0 z-30 px-4 py-4">
+                <div class="flex items-center gap-4 max-w-4xl mx-auto">
+                    <button onclick="showPage('page-commuter')" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition-colors" aria-label="Go back">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <h1 class="font-bold text-xl" data-i18n="settings">Settings</h1>
+                </div>
+            </header>
+            
+            <div class="px-4 py-6 max-w-4xl mx-auto space-y-6">
+                <!-- Language -->
+                <section class="glass rounded-2xl p-4">
+                    <h2 class="font-bold mb-4" data-i18n="language">Language</h2>
+                    <select id="settings-language" onchange="changeLanguage(this.value)" class="w-full glass rounded-xl px-4 py-3 bg-transparent cursor-pointer">
+                        <option value="en" class="bg-gray-900">🇬🇧 English</option>
+                        <option value="hi" class="bg-gray-900">🇮🇳 हिंदी</option>
+                        <option value="kn" class="bg-gray-900">🇮🇳 ಕನ್ನಡ</option>
+                        <option value="ta" class="bg-gray-900">🇮🇳 தமிழ்</option>
+                        <option value="te" class="bg-gray-900">🇮🇳 తెలుగు</option>
+                        <option value="ml" class="bg-gray-900">🇮🇳 മലയാളം</option>
+                    </select>
+                </section>
+                
+                <!-- Accessibility -->
+                <section class="glass rounded-2xl p-4 space-y-4">
+                    <h2 class="font-bold" data-i18n="accessibility">Accessibility</h2>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium" data-i18n="large_text">Large Text</p>
+                            <p class="text-sm text-gray-400" data-i18n="large_text_desc">Increase text size</p>
+                        </div>
+                        <button id="toggle-large-text" onclick="toggleLargeText()" class="w-14 h-8 rounded-full bg-gray-700 relative transition-colors" role="switch" aria-checked="false">
+                            <span class="absolute left-1 top-1 w-6 h-6 rounded-full bg-white transition-transform"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium" data-i18n="reduce_motion">Reduce Motion</p>
+                            <p class="text-sm text-gray-400" data-i18n="reduce_motion_desc">Minimize animations</p>
+                        </div>
+                        <button id="toggle-reduce-motion" onclick="toggleReduceMotion()" class="w-14 h-8 rounded-full bg-gray-700 relative transition-colors" role="switch" aria-checked="false">
+                            <span class="absolute left-1 top-1 w-6 h-6 rounded-full bg-white transition-transform"></span>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- About -->
+                <section class="glass rounded-2xl p-4">
+                    <h2 class="font-bold mb-4" data-i18n="about">About</h2>
+                    <div class="space-y-2 text-sm text-gray-400">
+                        <p>AccessiGo v1.0.0</p>
+                        <p>Bengaluru Namma Metro Accessibility Companion</p>
+                        <p class="pt-2">Built with ❤️ for accessibility</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Sheet for Assistance -->
+    <div id="assistance-sheet" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideAssistanceSheet()"></div>
+        <div class="bottom-sheet absolute bottom-0 left-0 right-0 glass rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
+            <div class="w-12 h-1 rounded-full bg-gray-600 mx-auto mb-6"></div>
+            
+            <h2 class="text-xl font-bold mb-6" data-i18n="request_assistance">Request Assistance</h2>
+            
+            <form id="assistance-form" onsubmit="submitAssistanceRequest(event)" class="space-y-4">
+                <div>
+                    <label for="assist-station" class="block text-sm font-medium mb-2" data-i18n="select_station">Select Station</label>
+                    <select id="assist-station" required class="w-full glass rounded-xl px-4 py-3 bg-transparent cursor-pointer">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="assist-type" class="block text-sm font-medium mb-2" data-i18n="assistance_type">Assistance Type</label>
+                    <select id="assist-type" required class="w-full glass rounded-xl px-4 py-3 bg-transparent cursor-pointer">
+                        <option value="wheelchair" class="bg-gray-900" data-i18n="wheelchair_assist">Wheelchair Assistance</option>
+                        <option value="visual" class="bg-gray-900" data-i18n="visual_assist">Visual Impairment Guide</option>
+                        <option value="hearing" class="bg-gray-900" data-i18n="hearing_assist">Hearing Impairment Support</option>
+                        <option value="elderly" class="bg-gray-900" data-i18n="elderly_assist">Elderly Assistance</option>
+                        <option value="other" class="bg-gray-900" data-i18n="other_assist">Other</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="assist-notes" class="block text-sm font-medium mb-2" data-i18n="additional_notes">Additional Notes (Optional)</label>
+                    <textarea id="assist-notes" rows="3" class="w-full glass rounded-xl px-4 py-3 bg-transparent resize-none" placeholder="Any specific requirements..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn-press w-full bg-gradient-gold text-black font-bold py-4 rounded-2xl">
+                    <span data-i18n="submit_request">Submit Request</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Notification History Sheet -->
+    <div id="notification-sheet" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="hideNotificationHistory()"></div>
+        <div class="bottom-sheet absolute bottom-0 left-0 right-0 glass rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
+            <div class="w-12 h-1 rounded-full bg-gray-600 mx-auto mb-6"></div>
+            <h2 class="text-xl font-bold mb-4" data-i18n="notifications">Notifications</h2>
+            <div id="notification-list" class="space-y-3">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // DATA: Station Information
+        // ============================================
+        const STATIONS = {
+            purple: [
+                { id: 'baiyappanahalli', name: 'Baiyappanahalli', lat: 12.9892, lng: 77.6528, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair'], busStops: ['BMTC Bus Stop - Baiyappanahalli', 'Old Madras Road Bus Stand'] },
+                { id: 'indiranagar', name: 'Indiranagar', lat: 12.9784, lng: 77.6408, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet'], busStops: ['Indiranagar Metro Bus Bay', 'CMH Road Junction'] },
+                { id: 'mg-road', name: 'Mahatma Gandhi Road', alias: 'MG Road', lat: 12.9756, lng: 77.6068, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet', 'assistance'], busStops: ['MG Road Bus Stop', 'Trinity Circle'] },
+                { id: 'cubbon-park', name: 'Cubbon Park', lat: 12.9763, lng: 77.5929, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair'], busStops: ['Cubbon Park Metro Stop', 'Raj Bhavan Road'] },
+                { id: 'kempegowda', name: 'Nadaprabhu Kempegowda Station', alias: 'Majestic', lat: 12.9772, lng: 77.5713, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet', 'assistance', 'interchange'], busStops: ['Majestic Bus Station', 'Kempegowda Bus Terminal', 'Platform 1-5'] },
+                { id: 'majestic', name: 'Majestic', isInterchange: true, lat: 12.9772, lng: 77.5713, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet', 'assistance', 'interchange'], busStops: ['Majestic Bus Station', 'Kempegowda Bus Terminal'] },
+                { id: 'vijayanagar', name: 'Vijayanagar', lat: 12.9706, lng: 77.5368, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair'], busStops: ['Vijayanagar Bus Stop', 'RPC Layout'] }
+            ],
+            green: [
+                { id: 'nagasandra', name: 'Nagasandra', lat: 13.0389, lng: 77.5096, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair'], busStops: ['Nagasandra Cross', 'Tumkur Road'] },
+                { id: 'peenya', name: 'Peenya Industry', lat: 13.0279, lng: 77.5197, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet'], busStops: ['Peenya Industrial Area', 'Ring Road Junction'] },
+                { id: 'yeshwanthpur', name: 'Yeshwanthpur', lat: 13.0206, lng: 77.5389, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet', 'assistance'], busStops: ['Yeshwanthpur Circle', 'Railway Station Road'] },
+                { id: 'sampige-road', name: 'Mantri Square Sampige Road', lat: 12.9958, lng: 77.5704, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet'], busStops: ['Sampige Road', 'Mantri Mall Bus Bay'] },
+                { id: 'lalbagh', name: 'Lalbagh Botanical Garden', lat: 12.9507, lng: 77.5848, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair'], busStops: ['Lalbagh Main Gate', 'Double Road'] },
+                { id: 'jayanagar', name: 'Jayanagar', lat: 12.9309, lng: 77.5838, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair', 'toilet', 'assistance'], busStops: ['Jayanagar 4th Block', 'Cool Joint'] },
+                { id: 'silk-institute', name: 'Silk Institute', lat: 12.8995, lng: 77.5678, facilities: ['elevator', 'ramp', 'tactile', 'wheelchair'], busStops: ['Silk Institute Bus Stop', 'BTM Layout'] }
+            ]
+        };
+
+        // ============================================
+        // DATA: i18n Translations
+        // ============================================
+        const TRANSLATIONS = {
+            en: {
+                commuter_login: 'Commuter Login',
+                staff_portal: 'Staff Portal',
+                feature_voice: 'Voice Guidance',
+                feature_assist: 'Assistance',
+                feature_routes: 'Routes',
+                large_text: 'Large Text',
+                reduce_motion: 'Reduce Motion',
+                welcome_back: 'Welcome back!',
+                plan_trip: 'Plan Trip',
+                plan_trip_desc: 'Find your route',
+                stations: 'Stations',
+                stations_desc: 'Browse all stops',
+                request_help: 'Request Help',
+                request_help_desc: 'Staff assistance',
+                voice_guide: 'Voice Guide',
+                voice_guide_desc: 'Audio navigation',
+                live_crowd: 'Live Crowd Status',
+                live: 'Live',
+                metro_lines: 'Metro Lines',
+                purple_line: 'Purple Line',
+                green_line: 'Green Line',
+                stations_count: 'stations',
+                all_stations: 'All Stations',
+                all_lines: 'All Lines',
+                facilities: 'Facilities',
+                station_map: 'Station Map',
+                tap_directions: 'Tap for directions',
+                nearby_bus_stops: 'Nearby Bus Stops',
+                accessibility_info: 'Accessibility Info',
+                start_from_here: 'Start Trip From Here',
+                trip_planner: 'Trip Planner',
+                from_station: 'From Station',
+                to_station: 'To Station',
+                select_station: 'Select station...',
+                find_route: 'Find Route',
+                your_route: 'Your Route',
+                total_stations: 'Total Stations',
+                est_time: 'Est. Time',
+                interchange: 'Interchange',
+                read_steps: 'Read Steps Aloud',
+                staff_login: 'Staff Login',
+                staff_login_desc: 'Enter your staff credentials',
+                login: 'Login',
+                settings: 'Settings',
+                language: 'Language',
+                accessibility: 'Accessibility',
+                large_text_desc: 'Increase text size',
+                reduce_motion_desc: 'Minimize animations',
+                about: 'About',
+                nav_home: 'Home',
+                nav_trip: 'Trip',
+                nav_stations: 'Stations',
+                nav_settings: 'Settings',
+                request_assistance: 'Request Assistance',
+                assistance_type: 'Assistance Type',
+                wheelchair_assist: 'Wheelchair Assistance',
+                visual_assist: 'Visual Impairment Guide',
+                hearing_assist: 'Hearing Impairment Support',
+                elderly_assist: 'Elderly Assistance',
+                other_assist: 'Other',
+                additional_notes: 'Additional Notes (Optional)',
+                submit_request: 'Submit Request',
+                notifications: 'Notifications',
+                request_submitted: 'Assistance request submitted!',
+                staff_notified: 'Staff has been notified',
+                request_accepted: 'Request Accepted',
+                staff_coming: 'Staff is on their way',
+                elevator: 'Elevator',
+                ramp: 'Ramp Access',
+                tactile: 'Tactile Path',
+                wheelchair: 'Wheelchair Access',
+                toilet: 'Accessible Toilet',
+                assistance: 'Staff Assistance',
+                interchange_facility: 'Line Interchange'
+            },
+            hi: {
+                commuter_login: 'यात्री लॉगिन',
+                staff_portal: 'स्टाफ पोर्टल',
+                feature_voice: 'वॉयस गाइड',
+                feature_assist: 'सहायता',
+                feature_routes: 'मार्ग',
+                large_text: 'बड़ा टेक्स्ट',
+                reduce_motion: 'कम एनिमेशन',
+                welcome_back: 'वापसी पर स्वागत!',
+                plan_trip: 'यात्रा प्लान करें',
+                plan_trip_desc: 'अपना मार्ग खोजें',
+                stations: 'स्टेशन',
+                stations_desc: 'सभी स्टॉप देखें',
+                request_help: 'सहायता मांगें',
+                request_help_desc: 'स्टाफ सहायता',
+                voice_guide: 'वॉयस गाइड',
+                voice_guide_desc: 'ऑडियो नेविगेशन',
+                live_crowd: 'लाइव भीड़ स्थिति',
+                live: 'लाइव',
+                metro_lines: 'मेट्रो लाइन्स',
+                purple_line: 'पर्पल लाइन',
+                green_line: 'ग्रीन लाइन',
+                stations_count: 'स्टेशन',
+                all_stations: 'सभी स्टेशन',
+                all_lines: 'सभी लाइन्स',
+                facilities: 'सुविधाएं',
+                station_map: 'स्टेशन मैप',
+                read_steps: 'स्टेप्स पढ़ें'
+            },
+            kn: {
+                commuter_login: 'ಪ್ರಯಾಣಿಕ ಲಾಗಿನ್',
+                staff_portal: 'ಸಿಬ್ಬಂದಿ ಪೋರ್ಟಲ್',
+                feature_voice: 'ಧ್ವನಿ ಮಾರ್ಗದರ್ಶನ',
+                feature_assist: 'ಸಹಾಯ',
+                feature_routes: 'ಮಾರ್ಗಗಳು',
+                welcome_back: 'ಮತ್ತೆ ಸ್ವಾಗತ!',
+                plan_trip: 'ಪ್ರಯಾಣ ಯೋಜಿಸಿ',
+                stations: 'ನಿಲ್ದಾಣಗಳು',
+                live_crowd: 'ನೇರ ಜನದಟ್ಟಣೆ ಸ್ಥಿತಿ',
+                purple_line: 'ಪರ್ಪಲ್ ಲೈನ್',
+                green_line: 'ಗ್ರೀನ್ ಲೈನ್',
+                read_steps: 'ಹಂತಗಳನ್ನು ಓದಿ'
+            },
+            ta: {
+                commuter_login: 'பயணி உள்நுழைவு',
+                staff_portal: 'ஊழியர் போர்டல்',
+                feature_voice: 'குரல் வழிகாட்டுதல்',
+                feature_assist: 'உதவி',
+                feature_routes: 'வழிகள்',
+                welcome_back: 'மீண்டும் வருக!',
+                plan_trip: 'பயணம் திட்டமிடுங்கள்',
+                stations: 'நிலையங்கள்',
+                purple_line: 'ஊதா கோடு',
+                green_line: 'பச்சை கோடு',
+                read_steps: 'படிகளைப் படியுங்கள்'
+            },
+            te: {
+                commuter_login: 'ప్రయాణికుల లాగిన్',
+                staff_portal: 'సిబ్బంది పోర్టల్',
+                feature_voice: 'వాయిస్ గైడెన్స్',
+                feature_assist: 'సహాయం',
+                feature_routes: 'మార్గాలు',
+                welcome_back: 'తిరిగి స్వాగతం!',
+                plan_trip: 'ప్రయాణం ప్లాన్ చేయండి',
+                stations: 'స్టేషన్లు',
+                purple_line: 'పర్పుల్ లైన్',
+                green_line: 'గ్రీన్ లైన్',
+                read_steps: 'స్టెప్స్ చదవండి'
+            },
+            ml: {
+                commuter_login: 'യാത്രക്കാരൻ ലോഗിൻ',
+                staff_portal: 'സ്റ്റാഫ് പോർട്ടൽ',
+                feature_voice: 'വോയ്സ് ഗൈഡൻസ്',
+                feature_assist: 'സഹായം',
+                feature_routes: 'റൂട്ടുകൾ',
+                welcome_back: 'തിരികെ സ്വാഗതം!',
+                plan_trip: 'യാത്ര ആസൂത്രണം ചെയ്യുക',
+                stations: 'സ്റ്റേഷനുകൾ',
+                purple_line: 'പർപ്പിൾ ലൈൻ',
+                green_line: 'ഗ്രീൻ ലൈൻ',
+                read_steps: 'ഘട്ടങ്ങൾ വായിക്കുക'
+            }
+        };
+
+        // ============================================
+        // STATE
+        // ============================================
+        let state = {
+            currentLang: 'en',
+            largeText: false,
+            reduceMotion: false,
+            currentStation: null,
+            currentRoute: null,
+            assistanceRequest: null,
+            crowdLevels: {},
+            notifications: [],
+            currentFilter: 'all'
+        };
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            initializeCrowdLevels();
+            populateStationSelects();
+            renderCrowdStatus();
+            renderStationsList();
+            renderStaffDashboard();
+            applyLanguage();
+            applyAccessibilitySettings();
+            
+            // Check for prefers-reduced-motion
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                state.reduceMotion = true;
+                applyAccessibilitySettings();
+            }
+        });
+
+        function loadState() {
+            const saved = localStorage.getItem('accessigo-state');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('accessigo-state', JSON.stringify(state));
+        }
+
+        // ============================================
+        // PAGE NAVIGATION
+        // ============================================
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+                page.classList.add('hidden');
+            });
+            
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                // Small delay for transition
+                requestAnimationFrame(() => {
+                    targetPage.classList.add('active');
+                });
+                
+                // Update bottom nav active state
+                updateBottomNav(pageId);
+            }
+        }
+
+        function updateBottomNav(pageId) {
+            const navButtons = document.querySelectorAll('nav button');
+            const pageMap = {
+                'page-commuter': 0,
+                'page-trip-planner': 1,
+                'page-stations': 2,
+                'page-settings': 3
+            };
+            
+            navButtons.forEach((btn, index) => {
+                if (index === pageMap[pageId]) {
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('text-yellow-400');
+                    btn.setAttribute('aria-current', 'page');
+                } else {
+                    btn.classList.add('text-gray-400');
+                    btn.classList.remove('text-yellow-400');
+                    btn.removeAttribute('aria-current');
+                }
+            });
+        }
+
+        // ============================================
+        // i18n SYSTEM
+        // ============================================
+        function changeLanguage(lang) {
+            state.currentLang = lang;
+            saveState();
+            applyLanguage();
+            document.documentElement.lang = lang;
+        }
+
+        function applyLanguage() {
+            const translations = TRANSLATIONS[state.currentLang] || TRANSLATIONS.en;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[key]) {
+                    el.textContent = translations[key];
+                } else if (TRANSLATIONS.en[key]) {
+                    el.textContent = TRANSLATIONS.en[key];
+                }
+            });
+            
+            // Update language selectors
+            document.getElementById('language-select').value = state.currentLang;
+            document.getElementById('settings-language').value = state.currentLang;
+        }
+
+        function t(key) {
+            return (TRANSLATIONS[state.currentLang] || TRANSLATIONS.en)[key] || TRANSLATIONS.en[key] || key;
+        }
+
+        // ============================================
+        // ACCESSIBILITY
+        // ============================================
+        function toggleLargeText() {
+            state.largeText = !state.largeText;
+            saveState();
+            applyAccessibilitySettings();
+            updateToggleButtons();
+        }
+
+        function toggleReduceMotion() {
+            state.reduceMotion = !state.reduceMotion;
+            saveState();
+            applyAccessibilitySettings();
+            updateToggleButtons();
+        }
+
+        function applyAccessibilitySettings() {
+            document.body.style.fontSize = state.largeText ? '18px' : '';
+            
+            if (state.reduceMotion) {
+                document.documentElement.style.setProperty('--animation-duration', '0.01ms');
+            } else {
+                document.documentElement.style.removeProperty('--animation-duration');
+            }
+            
+            updateToggleButtons();
+        }
+
+        function updateToggleButtons() {
+            const largeTextBtn = document.getElementById('toggle-large-text');
+            const reduceMotionBtn = document.getElementById('toggle-reduce-motion');
+            
+            if (largeTextBtn) {
+                largeTextBtn.setAttribute('aria-checked', state.largeText);
+                if (state.largeText) {
+                    largeTextBtn.classList.add('bg-yellow-400');
+                    largeTextBtn.classList.remove('bg-gray-700');
+                    largeTextBtn.querySelector('span').style.transform = 'translateX(24px)';
+                } else {
+                    largeTextBtn.classList.remove('bg-yellow-400');
+                    largeTextBtn.classList.add('bg-gray-700');
+                    largeTextBtn.querySelector('span').style.transform = 'translateX(0)';
+                }
+            }
+            
+            if (reduceMotionBtn) {
+                reduceMotionBtn.setAttribute('aria-checked', state.reduceMotion);
+                if (state.reduceMotion) {
+                    reduceMotionBtn.classList.add('bg-yellow-400');
+                    reduceMotionBtn.classList.remove('bg-gray-700');
+                    reduceMotionBtn.querySelector('span').style.transform = 'translateX(24px)';
+                } else {
+                    reduceMotionBtn.classList.remove('bg-yellow-400');
+                    reduceMotionBtn.classList.add('bg-gray-700');
+                    reduceMotionBtn.querySelector('span').style.transform = 'translateX(0)';
+                }
+            }
+        }
+
+        // ============================================
+        // CROWD LEVELS
+        // ============================================
+        function initializeCrowdLevels() {
+            const levels = ['low', 'medium', 'high'];
+            getAllStations().forEach(station => {
+                if (!state.crowdLevels[station.id]) {
+                    state.crowdLevels[station.id] = levels[Math.floor(Math.random() * 3)];
+                }
+            });
+        }
+
+        function getAllStations() {
+            return [...STATIONS.purple, ...STATIONS.green].filter((s, i, arr) => 
+                arr.findIndex(x => x.id === s.id) === i
+            );
+        }
+
+        function renderCrowdStatus() {
+            const container = document.getElementById('crowd-list');
+            if (!container) return;
+            
+            const html = getAllStations().slice(0, 5).map(station => {
+                const level = state.crowdLevels[station.id] || 'low';
+                const levelClass = `crowd-${level}`;
+                const levelText = level.charAt(0).toUpperCase() + level.slice(1);
+                
+                return `
+                    <button onclick="showStationDetail('${station.id}')" class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-left">
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full ${station.id.includes('green') || STATIONS.green.find(s => s.id === station.id) ? 'line-green' : 'line-purple'}"></div>
+                            <span class="font-medium">${station.name}</span>
+                        </div>
+                        <span class="${levelClass} px-3 py-1 rounded-full text-xs font-bold text-white animate-pulse">
+                            ${levelText}
+                        </span>
+                    </button>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // STATIONS
+        // ============================================
+        function populateStationSelects() {
+            const allStations = getAllStations();
+            const optionsHtml = allStations.map(s => 
+                `<option value="${s.id}" class="bg-gray-900">${s.name}</option>`
+            ).join('');
+            
+            ['trip-from', 'trip-to', 'assist-station'].forEach(id => {
+                const select = document.getElementById(id);
+                if (select) {
+                    select.innerHTML = `<option value="" class="bg-gray-900">${t('select_station')}</option>` + optionsHtml;
+                }
+            });
+        }
+
+        function renderStationsList() {
+            const container = document.getElementById('stations-list');
+            if (!container) return;
+            
+            let stations = [];
+            if (state.currentFilter === 'purple') {
+                stations = STATIONS.purple;
+            } else if (state.currentFilter === 'green') {
+                stations = STATIONS.green;
+            } else {
+                stations = getAllStations();
+            }
+            
+            const html = stations.map((station, index) => {
+                const level = state.crowdLevels[station.id] || 'low';
+                const line = STATIONS.green.find(s => s.id === station.id) ? 'green' : 'purple';
+                
+                return `
+                    <button onclick="showStationDetail('${station.id}')" class="station-item w-full btn-press glass rounded-2xl p-4 flex items-center gap-4 hover:bg-white/5 transition-all text-left animate-slide-up stagger-${Math.min(index + 1, 5)}" style="opacity: 0" data-station-name="${station.name.toLowerCase()}">
+                        <div class="w-4 h-12 rounded-full line-${line}"></div>
+                        <div class="flex-1">
+                            <h3 class="font-bold">${station.name}</h3>
+                            ${station.alias ? `<p class="text-sm text-gray-400">${station.alias}</p>` : ''}
+                            ${station.isInterchange ? '<span class="text-xs text-yellow-400">⇄ Interchange</span>' : ''}
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="crowd-${level} px-2 py-1 rounded-full text-xs font-bold text-white">
+                                ${level.toUpperCase()}
+                            </span>
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+
+        function filterStations(filter) {
+            state.currentFilter = filter;
+            
+            // Update filter tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                if (tab.dataset.filter === filter) {
+                    tab.classList.add('bg-yellow-400', 'text-black');
+                } else {
+                    tab.classList.remove('bg-yellow-400', 'text-black');
+                }
+            });
+            
+            // Update label
+            const labels = { all: 'All Lines', purple: 'Purple Line', green: 'Green Line' };
+            const labelEl = document.getElementById('station-filter-label');
+            if (labelEl) labelEl.textContent = labels[filter];
+            
+            renderStationsList();
+            showPage('page-stations');
+        }
+
+        function filterStationsBySearch(query) {
+            const items = document.querySelectorAll('.station-item');
+            const q = query.toLowerCase();
+            
+            items.forEach(item => {
+                const name = item.dataset.stationName;
+                item.style.display = name.includes(q) ? '' : 'none';
+            });
+        }
+
+        function showStationDetail(stationId) {
+            const station = getAllStations().find(s => s.id === stationId);
+            if (!station) return;
+            
+            state.currentStation = station;
+            
+            // Update header
+            document.getElementById('station-detail-name').textContent = station.name;
+            const line = STATIONS.green.find(s => s.id === stationId) ? 'Green Line' : 'Purple Line';
+            document.getElementById('station-detail-line').textContent = line;
+            
+            // Update hero
+            document.getElementById('station-hero-name').textContent = station.name;
+            document.getElementById('station-hero-alias').textContent = station.alias || '';
+            
+            const crowdBadge = document.getElementById('station-crowd-badge');
+            const level = state.crowdLevels[stationId] || 'low';
+            crowdBadge.className = `crowd-${level} px-3 py-1 rounded-full text-xs font-bold text-white`;
+            crowdBadge.textContent = level.toUpperCase();
+            
+            const lineBadge = document.getElementById('station-line-badge');
+            lineBadge.className = `inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${STATIONS.green.find(s => s.id === stationId) ? 'line-green' : 'line-purple'} text-white`;
+            lineBadge.querySelector('span:last-child').textContent = line;
+            
+            // Facilities
+            const facilityIcons = {
+                elevator: { icon: '🛗', label: t('elevator') },
+                ramp: { icon: '♿', label: t('ramp') },
+                tactile: { icon: '🔲', label: t('tactile') },
+                wheelchair: { icon: '🦽', label: t('wheelchair') },
+                toilet: { icon: '🚻', label: t('toilet') },
+                assistance: { icon: '👨‍✈️', label: t('assistance') },
+                interchange: { icon: '⇄', label: t('interchange_facility') }
+            };
+            
+            const facilitiesHtml = (station.facilities || []).map(f => {
+                const facility = facilityIcons[f] || { icon: '✓', label: f };
+                return `
+                    <div class="glass rounded-xl p-3 text-center">
+                        <div class="text-2xl mb-1">${facility.icon}</div>
+                        <p class="text-xs text-gray-300">${facility.label}</p>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('facilities-grid').innerHTML = facilitiesHtml;
+            
+            // Map station name
+            document.getElementById('map-station-name').textContent = station.name;
+            
+            // Bus stops
+            const busStopsHtml = (station.busStops || []).map(stop => 
+                `<div class="flex items-center gap-2"><span class="text-yellow-400">🚌</span> ${stop}</div>`
+            ).join('');
+            document.getElementById('bus-stops-list').innerHTML = busStopsHtml || '<p class="text-gray-500">No nearby bus stops</p>';
+            
+            // Accessibility notes
+            const accessNotes = `
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400">✓</span>
+                    <div>
+                        <p class="font-medium">Step-free access available</p>
+                        <p class="text-sm text-gray-400">Elevator and ramps available at all entry points</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400">✓</span>
+                    <div>
+                        <p class="font-medium">Tactile guidance path</p>
+                        <p class="text-sm text-gray-400">Yellow tactile tiles from entry to platform</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-green-400">✓</span>
+                    <div>
+                        <p class="font-medium">Visual announcements</p>
+                        <p class="text-sm text-gray-400">LED displays show train arrivals and alerts</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('accessibility-notes').innerHTML = accessNotes;
+            
+            showPage('page-station-detail');
+        }
+
+        function planTripFromStation() {
+            if (state.currentStation) {
+                document.getElementById('trip-from').value = state.currentStation.id;
+            }
+            showPage('page-trip-planner');
+        }
+
+        function requestHelpAtStation() {
+            if (state.currentStation) {
+                document.getElementById('assist-station').value = state.currentStation.id;
+            }
+            showAssistanceSheet();
+        }
+
+        // ============================================
+        // TRIP PLANNER
+        // ============================================
+        function swapStations() {
+            const from = document.getElementById('trip-from');
+            const to = document.getElementById('trip-to');
+            [from.value, to.value] = [to.value, from.value];
+        }
+
+        function planTrip() {
+            const fromId = document.getElementById('trip-from').value;
+            const toId = document.getElementById('trip-to').value;
+            
+            if (!fromId || !toId) {
+                showToast('Please select both stations', 'error');
+                return;
+            }
+            
+            if (fromId === toId) {
+                showToast('Please select different stations', 'error');
+                return;
+            }
+            
+            const route = calculateRoute(fromId, toId);
+            state.currentRoute = route;
+            renderRoute(route);
+        }
+
+        function calculateRoute(fromId, toId) {
+            const purpleIds = STATIONS.purple.map(s => s.id);
+            const greenIds = STATIONS.green.map(s => s.id);
+            
+            const fromPurple = purpleIds.includes(fromId);
+            const toPurple = purpleIds.includes(toId);
+            const fromGreen = greenIds.includes(fromId);
+            const toGreen = greenIds.includes(toId);
+            
+            let route = [];
+            let needsInterchange = false;
+            
+            // Same line - direct route
+            if ((fromPurple && toPurple) || (fromGreen && toGreen)) {
+                const line = fromPurple ? STATIONS.purple : STATIONS.green;
+                const fromIdx = line.findIndex(s => s.id === fromId);
+                const toIdx = line.findIndex(s => s.id === toId);
+                
+                if (fromIdx <= toIdx) {
+                    route = line.slice(fromIdx, toIdx + 1);
+                } else {
+                    route = line.slice(toIdx, fromIdx + 1).reverse();
+                }
+            } else {
+                // Different lines - need interchange at Majestic
+                needsInterchange = true;
+                
+                // From start to Majestic
+                const startLine = fromPurple ? STATIONS.purple : STATIONS.green;
+                const startIdx = startLine.findIndex(s => s.id === fromId);
+                const majesticIdx = startLine.findIndex(s => s.id === 'majestic' || s.id === 'kempegowda');
+                
+                let firstPart;
+                if (startIdx <= majesticIdx) {
+                    firstPart = startLine.slice(startIdx, majesticIdx + 1);
+                } else {
+                    firstPart = startLine.slice(majesticIdx, startIdx + 1).reverse();
+                }
+                
+                // From Majestic to destination
+                const endLine = toPurple ? STATIONS.purple : STATIONS.green;
+                const endIdx = endLine.findIndex(s => s.id === toId);
+                const majesticEndIdx = endLine.findIndex(s => s.id === 'majestic' || s.id === 'kempegowda' || s.id === 'sampige-road');
+                
+                let secondPart;
+                if (majesticEndIdx <= endIdx) {
+                    secondPart = endLine.slice(majesticEndIdx, endIdx + 1);
+                } else {
+                    secondPart = endLine.slice(endIdx, majesticEndIdx + 1).reverse();
+                }
+                
+                // Combine, avoiding duplicate Majestic
+                route = [...firstPart, ...secondPart.slice(1)];
+            }
+            
+            return {
+                stations: route,
+                needsInterchange,
+                duration: route.length * 3 // ~3 min per station
+            };
+        }
+
+        function renderRoute(route) {
+            document.getElementById('route-display').classList.remove('hidden');
+            document.getElementById('route-station-count').textContent = route.stations.length;
+            document.getElementById('route-time').textContent = `${route.duration} min`;
+            
+            if (route.needsInterchange) {
+                document.getElementById('route-interchange').classList.remove('hidden');
+            } else {
+                document.getElementById('route-interchange').classList.add('hidden');
+            }
+            
+            const visualContainer = document.getElementById('route-visual');
+            const stopsHtml = route.stations.map((station, index) => {
+                const isFirst = index === 0;
+                const isLast = index === route.stations.length - 1;
+                const isInterchange = station.isInterchange || station.id === 'majestic' || station.id === 'kempegowda';
+                const line = STATIONS.green.find(s => s.id === station.id) ? 'green' : 'purple';
+                const level = state.crowdLevels[station.id] || 'low';
+                
+                return `
+                    <div class="flex items-start gap-4 animate-slide-up stagger-${Math.min(index + 1, 5)}" style="opacity: 0; animation-delay: ${index * 0.1}s">
+                        <div class="flex flex-col items-center">
+                            <div class="w-4 h-4 rounded-full ${isFirst || isLast ? 'bg-yellow-400' : isInterchange ? 'bg-yellow-400 ring-4 ring-yellow-400/30' : 'bg-white/30'} ${isInterchange ? 'animate-pulse' : ''}"></div>
+                            ${!isLast ? `<div class="w-0.5 h-12 bg-gradient-to-b from-${line === 'green' ? 'green' : 'purple'}-500 to-${line === 'green' ? 'green' : 'purple'}-600"></div>` : ''}
+                        </div>
+                        <div class="flex-1 pb-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-bold ${isFirst || isLast ? 'text-yellow-400' : ''}">${station.name}</p>
+                                    ${station.alias ? `<p class="text-sm text-gray-400">${station.alias}</p>` : ''}
+                                    ${isInterchange && route.needsInterchange ? '<p class="text-xs text-yellow-400">⇄ Change to ' + (line === 'purple' ? 'Green' : 'Purple') + ' Line</p>' : ''}
+                                </div>
+                                <span class="crowd-${level} px-2 py-0.5 rounded-full text-xs font-bold text-white">${level.charAt(0).toUpperCase()}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            visualContainer.innerHTML = stopsHtml;
+        }
+
+        // ============================================
+        // VOICE GUIDANCE
+        // ============================================
+        function startVoiceGuidance() {
+            const messages = {
+                en: 'Welcome to AccessiGo. Your accessible companion for Bengaluru Namma Metro. Use the trip planner to find your route, and request staff assistance anytime.',
+                hi: 'एक्सेसिगो में आपका स्वागत है। बेंगलुरु नम्मा मेट्रो के लिए आपका सुलभ साथी।',
+                kn: 'ಆಕ್ಸೆಸಿಗೋಗೆ ಸ್ವಾಗತ. ಬೆಂಗಳೂರು ನಮ್ಮ ಮೆಟ್ರೋಗಾಗಿ ನಿಮ್ಮ ಪ್ರವೇಶಿಸಬಹುದಾದ ಸಂಗಾತಿ.',
+                ta: 'ஆக்செசிகோவுக்கு வரவேற்கிறோம். பெங்களூரு நம்ம மெட்ரோவுக்கான உங்கள் அணுகக்கூடிய துணை.',
+                te: 'యాక్సెసిగోకు స్వాగతం. బెంగళూరు నమ్మ మెట్రో కోసం మీ యాక్సెస్ చేయగల సహచరుడు.',
+                ml: 'ആക്സസിഗോയിലേക്ക് സ്വാഗതം. ബെംഗളൂരു നമ്മ മെട്രോയ്ക്കുള്ള നിങ്ങളുടെ ആക്സസ് ചെയ്യാവുന്ന കൂട്ടാളി.'
+            };
+            
+            speak(messages[state.currentLang] || messages.en);
+        }
+
+        function readRouteAloud() {
+            if (!state.currentRoute) {
+                showToast('Please plan a route first', 'error');
+                return;
+            }
+            
+            const route = state.currentRoute;
+            let text = '';
+            
+            if (state.currentLang === 'en') {
+                text = `Your route has ${route.stations.length} stations. `;
+                if (route.needsInterchange) {
+                    text += 'You will need to change lines at Majestic station. ';
+                }
+                text += 'Starting from ' + route.stations[0].name + '. ';
+                route.stations.slice(1, -1).forEach((s, i) => {
+                    if (s.isInterchange || s.id === 'majestic') {
+                        text += `At ${s.name}, change to the ${STATIONS.green.find(x => x.id === s.id) ? 'Green' : 'Purple'} Line. `;
+                    }
+                });
+                text += 'Your destination is ' + route.stations[route.stations.length - 1].name + '. ';
+                text += 'Estimated time: ' + route.duration + ' minutes.';
+            } else {
+                // Simplified for other languages
+                text = `${route.stations.length} stations. ${route.duration} minutes.`;
+            }
+            
+            speak(text);
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Set language
+                const langMap = {
+                    en: 'en-IN',
+                    hi: 'hi-IN',
+                    kn: 'kn-IN',
+                    ta: 'ta-IN',
+                    te: 'te-IN',
+                    ml: 'ml-IN'
+                };
+                utterance.lang = langMap[state.currentLang] || 'en-IN';
+                utterance.rate = 0.9;
+                
+                window.speechSynthesis.speak(utterance);
+                showToast('🔊 Speaking...', 'info');
+            } else {
+                showToast('Voice not supported on this device', 'error');
+            }
+        }
+
+        // ============================================
+        // ASSISTANCE REQUESTS
+        // ============================================
+        function showAssistanceSheet() {
+            const sheet = document.getElementById('assistance-sheet');
+            sheet.classList.remove('hidden');
+            setTimeout(() => {
+                sheet.querySelector('.bottom-sheet').classList.add('open');
+            }, 10);
+        }
+
+        function hideAssistanceSheet() {
+            const sheet = document.getElementById('assistance-sheet');
+            sheet.querySelector('.bottom-sheet').classList.remove('open');
+            setTimeout(() => {
+                sheet.classList.add('hidden');
+            }, 400);
+        }
+
+        function submitAssistanceRequest(e) {
+            e.preventDefault();
+            
+            const stationId = document.getElementById('assist-station').value;
+            const type = document.getElementById('assist-type').value;
+            const notes = document.getElementById('assist-notes').value;
+            
+            if (!stationId) {
+                showToast('Please select a station', 'error');
+                return;
+            }
+            
+            const station = getAllStations().find(s => s.id === stationId);
+            
+            state.assistanceRequest = {
+                id: Date.now(),
+                station: station.name,
+                stationId,
+                type,
+                notes,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            // Save to mock "Firestore"
+            let requests = JSON.parse(localStorage.getItem('assistance-requests') || '[]');
+            requests.push(state.assistanceRequest);
+            localStorage.setItem('assistance-requests', JSON.stringify(requests));
+            
+            hideAssistanceSheet();
+            showDynamicIsland();
+            showToast(t('request_submitted'), 'success');
+            addNotification(t('request_submitted'), t('staff_notified'));
+            
+            // Simulate staff accepting after 5 seconds
+            setTimeout(() => {
+                if (state.assistanceRequest) {
+                    state.assistanceRequest.status = 'accepted';
+                    updateDynamicIsland('accepted');
+                    showToast(t('request_accepted'), 'success');
+                    addNotification(t('request_accepted'), t('staff_coming'));
+                }
+            }, 5000);
+            
+            renderStaffDashboard();
+        }
+
+        function showDynamicIsland() {
+            const island = document.getElementById('dynamic-island');
+            island.classList.remove('hidden');
+            island.classList.add('flex');
+            updateDynamicIsland('pending');
+        }
+
+        function updateDynamicIsland(status) {
+            const textEl = document.getElementById('island-text');
+            const island = document.getElementById('dynamic-island');
+            const dot = island.querySelector('.w-2');
+            
+            const statuses = {
+                pending: { text: '⏳ Assistance Request Pending...', color: 'bg-yellow-400' },
+                accepted: { text: '✓ Staff Accepted - En Route', color: 'bg-green-400' },
+                completed: { text: '✓ Request Completed', color: 'bg-blue-400' }
+            };
+            
+            const s = statuses[status];
+            textEl.textContent = s.text;
+            dot.className = `w-2 h-2 rounded-full ${s.color} animate-pulse`;
+            
+            if (status === 'completed') {
+                setTimeout(() => {
+                    island.classList.add('hidden');
+                    island.classList.remove('flex');
+                    state.assistanceRequest = null;
+                }, 3000);
+            }
+        }
+
+        // ============================================
+        // NOTIFICATIONS
+        // ============================================
+        function addNotification(title, body) {
+            state.notifications.unshift({
+                id: Date.now(),
+                title,
+                body,
+                time: new Date().toLocaleTimeString()
+            });
+            saveState();
+        }
+
+        function showNotificationHistory() {
+            const sheet = document.getElementById('notification-sheet');
+            const list = document.getElementById('notification-list');
+            
+            if (state.notifications.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-400 py-8">No notifications yet</p>';
+            } else {
+                list.innerHTML = state.notifications.map(n => `
+                    <div class="glass rounded-xl p-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="font-bold">${n.title}</p>
+                                <p class="text-sm text-gray-400">${n.body}</p>
+                            </div>
+                            <span class="text-xs text-gray-500">${n.time}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            sheet.classList.remove('hidden');
+            setTimeout(() => {
+                sheet.querySelector('.bottom-sheet').classList.add('open');
+            }, 10);
+        }
+
+        function hideNotificationHistory() {
+            const sheet = document.getElementById('notification-sheet');
+            sheet.querySelector('.bottom-sheet').classList.remove('open');
+            setTimeout(() => {
+                sheet.classList.add('hidden');
+            }, 400);
+        }
+
+        // ============================================
+        // TOAST NOTIFICATIONS
+        // ============================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+            
+            toast.className = `toast glass rounded-xl px-6 py-3 flex items-center gap-3 ${colors[type]} shadow-lg`;
+            toast.innerHTML = `
+                <span class="text-white font-medium">${message}</span>
+            `;
+            toast.setAttribute('role', 'alert');
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ============================================
+        // STAFF PORTAL
+        // ============================================
+        function staffLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('staff-password').value;
+            
+            if (password === 'staff123') {
+                showPage('page-staff-dashboard');
+                showToast('Welcome, Staff Member!', 'success');
+            } else {
+                showToast('Invalid credentials', 'error');
+            }
+        }
+
+        function staffLogout() {
+            showPage('page-landing');
+        }
+
+        function renderStaffDashboard() {
+            // Render assistance requests
+            const requestsContainer = document.getElementById('staff-requests-list');
+            if (!requestsContainer) return;
+            
+            const requests = JSON.parse(localStorage.getItem('assistance-requests') || '[]');
+            const activeRequests = requests.filter(r => r.status !== 'completed');
+            
+            document.getElementById('stat-active-requests').textContent = activeRequests.length;
+            
+            if (activeRequests.length === 0) {
+                requestsContainer.innerHTML = '<p class="text-gray-400 text-center py-8">No active requests</p>';
+            } else {
+                requestsContainer.innerHTML = activeRequests.map(req => {
+                    const timeSince = Math.floor((Date.now() - new Date(req.createdAt).getTime()) / 1000);
+                    const minutes = Math.floor(timeSince / 60);
+                    const seconds = timeSince % 60;
+                    
+                    return `
+                        <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <p class="font-bold">${req.station}</p>
+                                    <p class="text-sm text-gray-400 capitalize">${req.type.replace('-', ' ')}</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${req.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}">
+                                    ${req.status.toUpperCase()}
+                                </span>
+                            </div>
+                            ${req.notes ? `<p class="text-sm text-gray-300 mb-3">"${req.notes}"</p>` : ''}
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-400">⏱️ ${minutes}m ${seconds}s</span>
+                                <div class="flex gap-2">
+                                    ${req.status === 'pending' ? `
+                                        <button onclick="acceptRequest('${req.id}')" class="px-4 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors">
+                                            Accept
+                                        </button>
+                                    ` : `
+                                        <button onclick="completeRequest('${req.id}')" class="px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors">
+                                            Complete
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Render crowd controls
+            const crowdContainer = document.getElementById('crowd-control-list');
+            if (!crowdContainer) return;
+            
+            const stations = getAllStations().slice(0, 6);
+            crowdContainer.innerHTML = stations.map(station => {
+                const level = state.crowdLevels[station.id] || 'low';
+                return `
+                    <div class="bg-gray-900 rounded-2xl p-4 border border-gray-800">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="font-medium">${station.name}</p>
+                            <span class="crowd-${level} px-2 py-1 rounded-full text-xs font-bold text-white">${level.toUpperCase()}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="setCrowdLevel('${station.id}', 'low')" class="flex-1 py-2 rounded-lg text-sm font-medium ${level === 'low' ? 'bg-green-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}">Low</button>
+                            <button onclick="setCrowdLevel('${station.id}', 'medium')" class="flex-1 py-2 rounded-lg text-sm font-medium ${level === 'medium' ? 'bg-yellow-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}">Med</button>
+                            <button onclick="setCrowdLevel('${station.id}', 'high')" class="flex-1 py-2 rounded-lg text-sm font-medium ${level === 'high' ? 'bg-red-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}">High</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function acceptRequest(id) {
+            let requests = JSON.parse(localStorage.getItem('assistance-requests') || '[]');
+            requests = requests.map(r => r.id == id ? { ...r, status: 'accepted' } : r);
+            localStorage.setItem('assistance-requests', JSON.stringify(requests));
+            
+            if (state.assistanceRequest && state.assistanceRequest.id == id) {
+                state.assistanceRequest.status = 'accepted';
+                updateDynamicIsland('accepted');
+            }
+            
+            renderStaffDashboard();
+            showToast('Request accepted', 'success');
+        }
+
+        function completeRequest(id) {
+            let requests = JSON.parse(localStorage.getItem('assistance-requests') || '[]');
+            requests = requests.map(r => r.id == id ? { ...r, status: 'completed' } : r);
+            localStorage.setItem('assistance-requests', JSON.stringify(requests));
+            
+            if (state.assistanceRequest && state.assistanceRequest.id == id) {
+                updateDynamicIsland('completed');
+            }
+            
+            const completed = parseInt(document.getElementById('stat-completed').textContent) + 1;
+            document.getElementById('stat-completed').textContent = completed;
+            
+            renderStaffDashboard();
+            showToast('Request completed', 'success');
+        }
+
+        function setCrowdLevel(stationId, level) {
+            state.crowdLevels[stationId] = level;
+            saveState();
+            renderCrowdStatus();
+            renderStaffDashboard();
+            renderStationsList();
+        }
+        
+        // Refresh staff dashboard timers
+        setInterval(() => {
+            if (document.getElementById('page-staff-dashboard').classList.contains('active')) {
+                renderStaffDashboard();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
